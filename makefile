@@ -16,5 +16,16 @@ valgrind-main: main
 main: src/*.c main.c
 	$(CC) $(CFLAGS) src/*.c main.c -o main
 
+
+mari: src/*.c mari.c
+	$(CC) $(CFLAGS) src/*.c mari.c -o mari
+
+
+pruebas_alumno: src/*.c pruebas_alumno.c
+	$(CC) $(CFLAGS) src/*.c pruebas_alumno.c -o pruebas_alumno
+
+valgrind-alumno: pruebas_alumno
+	valgrind $(VALGRIND_FLAGS) ./pruebas_alumno
+	
 clean:
 	rm -f pruebas_alumno pruebas_chanutron ejemplo
