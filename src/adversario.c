@@ -8,17 +8,18 @@
 #include <string.h>
 #include <time.h>
 #include "funciones_auxiliares.h"
+typedef struct pokes_usados {
+	char nombre_pokes[50];
+	lista_t *ataques;
+	int posibilidades;
+	int indice;
+} pokes_usados_t;
 
 struct adversario {
 	lista_t *pokes;
 	lista_t *elegidos;
-	struct ataque varios_ataques[9];
-	int indice;
+	pokes_usados_t usados[3];
 };
-typedef struct nombres_ataques {
-	struct ataque nombres[3];
-	int indice;
-} nombres_ataques_t;
 
 adversario_t *adversario_crear(lista_t *pokemon)
 {
@@ -31,6 +32,18 @@ adversario_t *adversario_crear(lista_t *pokemon)
 		return NULL;
 	}
 	ad->pokes = pokemon;
+	ad->usados[0].ataques = lista_crear();
+	ad->usados[1].ataques = lista_crear();
+	ad->usados[2].ataques = lista_crear();
+	if (!ad->usados[0].ataques || !ad->usados[1].ataques ||
+	    !ad->usados[2].ataques) {
+		free(ad->elegidos);
+		free(ad->usados[0].ataques);
+		free(ad->usados[1].ataques);
+		free(ad->usados[2].ataques);
+		free(ad);
+		return NULL;
+	}
 	return ad;
 }
 
@@ -39,21 +52,17 @@ bool obtener_nombre(lista_t *lista, char **nombre, int posicion_poke)
 	size_t pos = (size_t)posicion_poke;
 	pokemon_t *poke1 = lista_elemento_en_posicion(lista, pos);
 	if (poke1) {
-		const char *nombre2 = pokemon_nombre(poke1);
-
-		char *puntero_a_puntero[1];
-		puntero_a_puntero[0] = (char *)nombre2;
-		*nombre = *puntero_a_puntero;
+		*nombre = (char *)pokemon_nombre(poke1);
 		return true;
 	}
 	return false;
 }
 
-void copiar_ataque(const struct ataque *at, void *p2)
+void cargar_vector(const struct ataque *at, void *p2)
 {
 	adversario_t *ad = p2;
-	ad->varios_ataques[ad->indice] = *at;
-	ad->indice++;
+	lista_insertar(ad->usados[ad->usados->indice].ataques,
+		       (struct ataque *)at);
 }
 
 bool adversario_seleccionar_pokemon(adversario_t *adversario, char **nombre1,
@@ -65,14 +74,11 @@ bool adversario_seleccionar_pokemon(adversario_t *adversario, char **nombre1,
 	int numero1 = (rand() % (int)cantidad_pokes + 0);
 	int numero2 = (rand() % (int)cantidad_pokes + 0);
 	int numero3 = (rand() % (int)cantidad_pokes + 0);
-	printf("tam %li pos1 %i pos2 %i pos3 %i\n", cantidad_pokes, numero1,
-	       numero2, numero3);
 	while (numero1 == numero2 || numero1 == numero3 || numero3 == numero2) {
 		numero1 = (rand() % (int)cantidad_pokes + 0);
 		numero2 = (rand() % (int)cantidad_pokes + 0);
 		numero3 = (rand() % (int)cantidad_pokes + 0);
 	}
-	printf("pos1 %i pos2 %i pos3 %i\n", numero1, numero2, numero3);
 
 	if (obtener_nombre(adversario->pokes, nombre1, numero1) &&
 	    obtener_nombre(adversario->pokes, nombre2, numero2) &&
@@ -83,9 +89,15 @@ bool adversario_seleccionar_pokemon(adversario_t *adversario, char **nombre1,
 			adversario->pokes, comparador_elementos, *nombre2);
 		lista_insertar(adversario->elegidos, poke1);
 		lista_insertar(adversario->elegidos, poke2);
-		adversario->indice = 0;
-		con_cada_ataque(poke1, copiar_ataque, adversario);
-		con_cada_ataque(poke2, copiar_ataque, adversario);
+		strcpy(adversario->usados[0].nombre_pokes, *nombre1);
+		strcpy(adversario->usados[1].nombre_pokes, *nombre2);
+		adversario->usados[0].posibilidades = 0;
+		adversario->usados[1].posibilidades = 0;
+		adversario->usados->indice = 0;
+		con_cada_ataque(poke1, cargar_vector, adversario);
+		adversario->usados->indice++;
+		con_cada_ataque(poke2, cargar_vector, adversario);
+		adversario->usados->indice++;
 	}
 
 	return false;
@@ -100,59 +112,62 @@ bool adversario_pokemon_seleccionado(adversario_t *adversario, char *nombre1,
 	pokemon_t *poke = lista_buscar_elemento(adversario->pokes,
 						comparador_elementos, nombre3);
 	lista_insertar(adversario->elegidos, poke);
-	con_cada_ataque(poke, copiar_ataque, adversario);
+	strcpy(adversario->usados[2].nombre_pokes, nombre3);
+	adversario->usados[2].posibilidades = 0;
+	con_cada_ataque(poke, cargar_vector, adversario);
+
 	return true;
-}
-void mostrar(const struct ataque *p1, void *p2)
-{
-	nombres_ataques_t *posicion = p2;
-	posicion->nombres[posicion->indice] = *p1;
-	posicion->indice++;
 }
 
 jugada_t adversario_proxima_jugada(adversario_t *adversario)
 {
 	jugada_t j = { .ataque = "", .pokemon = "" };
-	if (!adversario || lista_tamanio(adversario->elegidos) != 3)
+	if (!adversario)
 		return j;
-	bool ataque_encontrado = false;
-	nombres_ataques_t opciones;
-	opciones.indice = 0;
-	pokemon_t *poke = NULL;
-	size_t posicion = 0;
-	size_t posicion_ataque = 0;
 
-	while (!ataque_encontrado) {
-		posicion = (size_t)(rand() % 3 + 0);
-		posicion_ataque = (size_t)(rand() % 3 + 0);
-		poke = lista_elemento_en_posicion(adversario->elegidos,
-						  posicion);
+	size_t posicion =
+		(size_t)(rand() % (int)lista_tamanio(adversario->elegidos) + 0);
 
-		con_cada_ataque(poke, mostrar, &opciones);
-		for (int i = 0; i < 9; i++) {
-			if (strcmp(adversario->varios_ataques[i].nombre,
-				   opciones.nombres[posicion_ataque].nombre) ==
-			    0) {
-				ataque_encontrado = true;
+	pokemon_t *poke =
+		lista_elemento_en_posicion(adversario->elegidos, posicion);
+	char *nombre = (char *)pokemon_nombre(poke);
+
+	bool encontrado = false;
+	int segundo_numero = 0;
+	const struct ataque *ataque_buscado;
+	for (int i = 0; i < 3; i++) {
+		if (strcmp(adversario->usados[i].nombre_pokes, nombre) == 0 &&
+		    !encontrado) {
+			encontrado = true;
+			segundo_numero =
+				rand() %
+					(int)lista_tamanio(
+						adversario->usados[i].ataques) +
+				0;
+			ataque_buscado = lista_elemento_en_posicion(
+				adversario->usados[i].ataques,
+				(size_t)segundo_numero);
+			strcpy(j.ataque, ataque_buscado->nombre);
+			strcpy(j.pokemon, pokemon_nombre(poke));
+			lista_quitar_de_posicion(adversario->usados[i].ataques,
+						 (size_t)segundo_numero);
+		}
+	}
+	bool entro = false;
+	for (int i = 0; i < 3; i++) {
+		if (strcmp(adversario->usados[i].nombre_pokes, j.pokemon) ==
+		    0) {
+			adversario->usados[i].posibilidades++;
+			if (adversario->usados[i].posibilidades == 3 &&
+			    !entro) {
+				entro = true;
+				lista_quitar_de_posicion(adversario->elegidos,
+							 posicion);
+				strcpy(adversario->usados[i].nombre_pokes,
+				       "usado");
 			}
 		}
-		opciones.indice = 0;
 	}
-	strcpy(j.pokemon, pokemon_nombre(poke));
-	strcpy(j.ataque, opciones.nombres[posicion_ataque].nombre);
-	printf("%s    %s \n", j.pokemon, j.ataque);
-	bool encontrado = false;
-	int i = 0;
-
-	while (!encontrado && i < 9) {
-		if (strcmp(adversario->varios_ataques[i].nombre, j.ataque) ==
-		    0) {
-			encontrado = true;
-			strcpy(adversario->varios_ataques[i].nombre, "usado");
-		}
-		i++;
-	}
-
 	return j;
 }
 
@@ -165,6 +180,8 @@ void adversario_destruir(adversario_t *adversario)
 	if (!adversario)
 		return;
 	lista_destruir(adversario->elegidos);
-	//lista_destruir(adversario->pokes);
+	lista_destruir(adversario->usados[0].ataques);
+	lista_destruir(adversario->usados[1].ataques);
+	lista_destruir(adversario->usados[2].ataques);
 	free(adversario);
 }

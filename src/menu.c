@@ -1,23 +1,22 @@
 #include "menu.h"
-
-struct menu {
-	hash_t *comandos;
-};
+#include "funciones_auxiliares.h"
 
 typedef struct estado_juego {
 	juego_t *juego;
 	bool ejecutando;
 	menu_t *menu;
 	bool archivo_cargado;
-	lista_t *pokes_jugador1;
-	lista_t *pokes_jugador2;
 } estado_juego_t;
 
 typedef struct info_comando {
 	char *descripcion;
-	void (*funcion)(void *, void *);
+	RESULTADO_FUNCION (*funcion)(void *, void *);
 
 } info_comando_t;
+
+struct menu {
+	hash_t *comandos;
+};
 
 menu_t *crear_menu()
 {
@@ -32,7 +31,7 @@ menu_t *crear_menu()
 	return menu;
 }
 bool menu_agregar_comando(menu_t *menu, char *comando, char *descripcion,
-			  void (*f)(void *, void *))
+			  RESULTADO_FUNCION (*f)(void *, void *))
 {
 	if (!menu || !comando || !f || !descripcion)
 		return false;
@@ -50,16 +49,15 @@ bool menu_agregar_comando(menu_t *menu, char *comando, char *descripcion,
 	}
 	return true;
 }
-bool menu_ejecutar_comando(menu_t *menu, char *comando, void *contexto,
-			   void *contexto2)
+RESULTADO_FUNCION menu_ejecutar_comando(menu_t *menu, char *comando,
+					void *contexto, void *contexto2)
 {
 	estado_juego_t *estado = contexto;
 	info_comando_t *info = hash_obtener(menu->comandos, comando);
-	if (info) {
-		info->funcion(estado, contexto2);
-		return true;
+	if (!info) {
+		return COMANDO_INEXISTENTE;
 	}
-	return false;
+	return info->funcion(estado, contexto2);
 }
 
 size_t menu_tamanio(menu_t *menu)

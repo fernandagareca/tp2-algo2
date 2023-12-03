@@ -48,6 +48,8 @@ juego_t *juego_crear()
 		free(juego);
 		return NULL;
 	}
+	juego->jugador1.indice = 0;
+	juego->jugador2.indice = 0;
 	juego->jugador1.turnos_restantes = 9;
 	juego->jugador2.turnos_restantes = 9;
 	return juego;
@@ -61,7 +63,6 @@ JUEGO_ESTADO juego_cargar_pokemon(juego_t *juego, char *archivo)
 	informacion_pokemon_t *info = pokemon_cargar_archivo(archivo);
 	if (!info)
 		return ERROR_GENERAL;
-	//printf("cantidad %i\n",pokemon_cantidad(info));
 	if (pokemon_cantidad(info) < 6) {
 		pokemon_destruir_todo(info);
 		return POKEMON_INSUFICIENTES;
@@ -104,12 +105,13 @@ JUEGO_ESTADO juego_seleccionar_pokemon(juego_t *juego, JUGADOR jugador,
 	if (repetidos(nombre1, nombre2) || repetidos(nombre1, nombre3) ||
 	    repetidos(nombre2, nombre3))
 		return POKEMON_REPETIDO;
-
+	printf("los nombres no son repetidos\n");
 	pokemon_t *poke1 = pokemon_buscar(juego->info_pokes, nombre1);
 	pokemon_t *poke2 = pokemon_buscar(juego->info_pokes, nombre2);
 	pokemon_t *poke3 = pokemon_buscar(juego->info_pokes, nombre3);
 	if (!poke1 || !poke2 || !poke3)
 		return POKEMON_INEXISTENTE;
+	printf("existenn\n");
 
 	if (jugador == JUGADOR1) {
 		if (!lista_insertar(juego->jugador1.pokemones, poke1) ||
@@ -131,8 +133,6 @@ JUEGO_ESTADO juego_seleccionar_pokemon(juego_t *juego, JUGADOR jugador,
 		con_cada_ataque(poke1, funcion_insertar, &(juego->jugador2));
 		con_cada_ataque(poke2, funcion_insertar, &(juego->jugador2));
 		con_cada_ataque(poke3, funcion_insertar, &(juego->jugador1));
-	} else {
-		return ERROR_GENERAL;
 	}
 	return TODO_OK;
 }
@@ -144,30 +144,33 @@ const struct ataque *jugador_ataque(informacion_pokemon_t *info,
 	return pokemon_buscar_ataque(poke1, jugada_jugador.ataque);
 }
 
-RESULTADO_ATAQUE ataque_efectivo(enum TIPO tipo1, enum TIPO tipo2)
+RESULTADO_ATAQUE ataque_efectivo(enum TIPO tipo_ataque,
+				 enum TIPO tipo_pokemon_afectado)
 {
-	if (tipo1 == FUEGO) {
-		if (tipo2 == AGUA)
+	if (tipo_ataque == tipo_pokemon_afectado) {
+		return ATAQUE_REGULAR;
+	} else if (tipo_ataque == FUEGO) {
+		if (tipo_pokemon_afectado == AGUA)
 			return ATAQUE_INEFECTIVO;
 		return ATAQUE_EFECTIVO;
 
-	} else if (tipo1 == PLANTA) {
-		if (tipo2 == FUEGO)
+	} else if (tipo_ataque == PLANTA) {
+		if (tipo_pokemon_afectado == FUEGO)
 			return ATAQUE_INEFECTIVO;
 		return ATAQUE_EFECTIVO;
 
-	} else if (tipo1 == ROCA) {
-		if (tipo2 == PLANTA)
+	} else if (tipo_ataque == ROCA) {
+		if (tipo_pokemon_afectado == PLANTA)
 			return ATAQUE_INEFECTIVO;
 		return ATAQUE_EFECTIVO;
 
-	} else if (tipo1 == ELECTRICO) {
-		if (tipo2 == ROCA)
+	} else if (tipo_ataque == ELECTRICO) {
+		if (tipo_pokemon_afectado == ROCA)
 			return ATAQUE_INEFECTIVO;
 		return ATAQUE_EFECTIVO;
 
-	} else if (tipo1 == AGUA) {
-		if (tipo2 == ELECTRICO)
+	} else if (tipo_ataque == AGUA) {
+		if (tipo_pokemon_afectado == ELECTRICO)
 			return ATAQUE_INEFECTIVO;
 		return ATAQUE_EFECTIVO;
 	}
@@ -234,9 +237,9 @@ resultado_jugada_t juego_jugar_turno(juego_t *juego, jugada_t jugada_jugador1,
 	}
 
 	resultado.jugador1 =
-		ataque_efectivo(ataque_jugador1->tipo, ataque_jugador2->tipo);
+		ataque_efectivo(ataque_jugador1->tipo, pokemon_tipo(poke2));
 	resultado.jugador2 =
-		ataque_efectivo(ataque_jugador2->tipo, ataque_jugador1->tipo);
+		ataque_efectivo(ataque_jugador2->tipo, pokemon_tipo(poke1));
 	puntos(resultado.jugador1, &(juego->jugador1), ataque_jugador1->poder);
 	puntos(resultado.jugador2, &(juego->jugador2), ataque_jugador2->poder);
 
@@ -249,7 +252,6 @@ int juego_obtener_puntaje(juego_t *juego, JUGADOR jugador)
 		return 0;
 
 	if (jugador == JUGADOR1) {
-		printf("puntos jugador 1  %i\n", juego->jugador1.puntaje);
 		return juego->jugador1.puntaje;
 	} else {
 		return juego->jugador2.puntaje;
