@@ -43,7 +43,7 @@ int main()
 				  .juego = juego,
 				  .menu = menu };
 	info_juego_t info = { .adversario = adversario,
-			      .turnos = 0,
+			      .turnos = 1,
 			      .lista = lista };
 	info.pokes_jugador1 = lista_crear();
 	info.pokes_jugador2 = lista_crear();
@@ -64,8 +64,6 @@ int main()
 		RESULTADO_FUNCION comando_ejecutado =
 			menu_ejecutar_comando(menu, linea, &estado, &info);
 		resultado_comando(comando_ejecutado);
-
-		printf("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 	}
 	adversario_destruir(adversario);
 	menu_destrir(menu);

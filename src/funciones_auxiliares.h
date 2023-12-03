@@ -29,7 +29,7 @@ typedef struct info_juego {
 
 int comparador_elementos(void *p1, void *p2);
 
-void funcion(pokemon_t *poke, void *v2);
+void funcion_insertar_pokes(pokemon_t *poke, void *v2);
 
 void explicar_juego();
 

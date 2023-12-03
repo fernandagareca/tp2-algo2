@@ -23,7 +23,7 @@ int comparador_elementos(void *p1, void *p2)
 	return numero;
 }
 
-void funcion(pokemon_t *poke, void *v2)
+void funcion_insertar_pokes(pokemon_t *poke, void *v2)
 {
 	lista_t *lista = v2;
 	lista_insertar(lista, poke);
@@ -227,16 +227,14 @@ RESULTADO_FUNCION seleccion_de_pokemones(void *p1, void *p2)
 			JUEGO_ESTADO estdo_jugador2 = juego_seleccionar_pokemon(
 				estado->juego, JUGADOR2, nombre1, nombre2,
 				nombre3);
-			printf("estado jugador 2 %i\n", estdo_jugador2);
 			if (estdo_jugador2 == TODO_OK) {
-				printf("jugador 2 se inserto bien\n");
 				cargar_lista_jugador(info->lista, poke1, poke2,
 						     nombre3,
 						     info->pokes_jugador1);
 				cargar_lista_jugador(info->lista, nombre1,
 						     nombre2, poke3,
 						     info->pokes_jugador2);
-				printf("todo bien\n");
+
 				cargar_jugadas(info);
 				return POKEMONES_CORRECTOS;
 			}
@@ -313,6 +311,28 @@ bool verificar_datos(jugada_t jugada, info_juego_t *info)
 	}
 	return false;
 }
+void mostrar(jugada_t jugador, jugada_t adversario, int turnos,
+	     int puntos_jugador, int puntos_adversario)
+{
+	printf("┏━━━━━━━━━━━━━━━━━━━ PARTIDA n° %i ━━━━━━━━━━━━━━━━━━━━━━━━━\n",
+	       turnos);
+
+	printf(" ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+	printf(" ┃ Seleccion del usuario  \n");
+	printf(" ┃ POKEMON %s  ATAQUE  %s\n", jugador.pokemon, jugador.ataque);
+	printf(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+	printf(" ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+	printf(" ┃ Seleccion del adversario  \n");
+	printf(" ┃ POKEMON %s  ATAQUE  %s\n", adversario.pokemon,
+	       adversario.ataque);
+	printf(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+	printf(" ----------------------------------------------------------\n");
+	printf(" Resultado: Puntos_jugador %i      Puntos adversario  %i\n",
+	       puntos_jugador, puntos_adversario);
+	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+}
+
 RESULTADO_FUNCION jugada(void *p1, void *p2)
 {
 	estado_juego_t *estado = p1;
@@ -325,41 +345,31 @@ RESULTADO_FUNCION jugada(void *p1, void *p2)
 	if (lista_vacia(info->pokes_jugador1))
 		return ERROR_DE_SELECCION;
 
-	printf("┏━━━━━━━━━━━━━━━━━━━ PARTIDA n° %i ━━━━━━━━━━━━━━━━━━━━━━━━━\n",
-	       info->turnos);
-	printf("┃ Puntos Jugador %i                    Puntos Adversario %i \n",
-	       juego_obtener_puntaje(estado->juego, 0),
-	       juego_obtener_puntaje(estado->juego, 1));
-	printf("┃ Ingrese un pokemon (sin espacios)\n");
-	printf("┃ ━➤ ");
+	printf(" Ingrese un pokemon (sin espacios)\n");
+	printf(" ━➤ ");
 	leer_linea(jugada_jugador.pokemon);
-	printf("┃ Ingrese un ataque (sin espacios)\n");
-	printf("┃ ━➤ ");
+	printf(" Ingrese un ataque (sin espacios)\n");
+	printf(" ━➤ ");
 	leer_linea(jugada_jugador.ataque);
 	bool jugada_valida = verificar_datos(jugada_jugador, info);
 	if (jugada_valida) {
 		jugada_adversario = adversario_proxima_jugada(info->adversario);
-		printf("jugada valida\n");
-	} else {
-		printf("jugada no valida\n");
 	}
 	resultado_jugada_t resultado = juego_jugar_turno(
 		estado->juego, jugada_jugador, jugada_adversario);
 	if (resultado.jugador1 == ATAQUE_ERROR ||
 	    resultado.jugador2 == ATAQUE_ERROR)
 		return JUGADA_INVALIDA;
-	printf(" ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-	printf(" ┃ Seleccion del adversario  \n");
-	printf(" ┃ POKEMON %s  ATAQUE  %s\n", jugada_adversario.pokemon,
-	       jugada_adversario.ataque);
-	printf(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
-
-	printf(" ----------------------------------------------------------\n");
-	printf(" Resultado: Puntos_jugador %i      Puntos adversario  %i\n",
-	       juego_obtener_puntaje(estado->juego, JUGADOR1),
-	       juego_obtener_puntaje(estado->juego, JUGADOR2));
-	printf("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+	int puntos_jugador = juego_obtener_puntaje(estado->juego, JUGADOR1);
+	int puntos_adversario = juego_obtener_puntaje(estado->juego, JUGADOR2);
+	mostrar(jugada_jugador, jugada_adversario, info->turnos, puntos_jugador,
+		puntos_adversario);
+	if (info->turnos == 9) {
+		(puntos_jugador > puntos_adversario) ? printf("GANASTE\n") :
+						       printf("PERDISTE\n");
+	}
 	info->turnos++;
+
 	return TODO_BIEN;
 }
 

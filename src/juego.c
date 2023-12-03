@@ -48,13 +48,13 @@ juego_t *juego_crear()
 		free(juego);
 		return NULL;
 	}
-	juego->jugador1.indice = 0;
-	juego->jugador2.indice = 0;
 	juego->jugador1.turnos_restantes = 9;
 	juego->jugador2.turnos_restantes = 9;
 	return juego;
 }
-
+/* en la funcion juego cargar pokemon veriffico que el juego y el archivo no sean null,despues cargo el campo info de la estructura de juego verificando que la funcion
+   pokemon cargar archivo devuelva una informacion valida,en caso que la cantidad de pokemones sea menor  a la minima retorno POKEMONES INSUFICIENTES
+*/
 JUEGO_ESTADO juego_cargar_pokemon(juego_t *juego, char *archivo)
 {
 	if (!juego || !archivo)
@@ -71,22 +71,19 @@ JUEGO_ESTADO juego_cargar_pokemon(juego_t *juego, char *archivo)
 
 	return TODO_OK;
 }
-
+/* En la funcion juego_cargar_pokemon  verifico que el juego exista,y cargo la lista con todos los pokemones que se encuentran en la info de pokemones y
+ devuelvo la lista*/
 lista_t *juego_listar_pokemon(juego_t *juego)
 {
 	if (!juego)
 		return NULL;
 
-	if (con_cada_pokemon(juego->info_pokes, funcion, juego->lista) !=
+	if (con_cada_pokemon(juego->info_pokes, funcion_insertar_pokes,
+			     juego->lista) !=
 	    pokemon_cantidad(juego->info_pokes)) {
 		return NULL;
 	}
 	return juego->lista;
-}
-
-bool repetidos(const char *v1, const char *v2)
-{
-	return strcmp(v1, v2) == 0;
 }
 void funcion_insertar(const struct ataque *atake, void *p1)
 {
@@ -94,7 +91,9 @@ void funcion_insertar(const struct ataque *atake, void *p1)
 	jugador->varios_ataques[jugador->indice] = *atake;
 	jugador->indice++;
 }
-
+/*en la funcion juego seleccionar pokemon verifico que el juego y los nombres recibidos no sean null , verifico que los nombres no se repitan y 
+que dichos pokemones existan,segun el tipo de jugador inserto en su lista los primeros 2 pokemones pero el 3er  pokemon lo inserto en la lista del otro
+jugador , cargo los ataques en un vector de ataques */
 JUEGO_ESTADO juego_seleccionar_pokemon(juego_t *juego, JUGADOR jugador,
 				       const char *nombre1, const char *nombre2,
 				       const char *nombre3)
@@ -102,16 +101,15 @@ JUEGO_ESTADO juego_seleccionar_pokemon(juego_t *juego, JUGADOR jugador,
 	if (!juego || !nombre1 || !nombre2 || !nombre3)
 		return ERROR_GENERAL;
 
-	if (repetidos(nombre1, nombre2) || repetidos(nombre1, nombre3) ||
-	    repetidos(nombre2, nombre3))
+	if (strcmp(nombre1, nombre2) == 0 || strcmp(nombre1, nombre3) == 0 ||
+	    strcmp(nombre3, nombre2) == 0)
 		return POKEMON_REPETIDO;
-	printf("los nombres no son repetidos\n");
+
 	pokemon_t *poke1 = pokemon_buscar(juego->info_pokes, nombre1);
 	pokemon_t *poke2 = pokemon_buscar(juego->info_pokes, nombre2);
 	pokemon_t *poke3 = pokemon_buscar(juego->info_pokes, nombre3);
 	if (!poke1 || !poke2 || !poke3)
 		return POKEMON_INEXISTENTE;
-	printf("existenn\n");
 
 	if (jugador == JUGADOR1) {
 		if (!lista_insertar(juego->jugador1.pokemones, poke1) ||
@@ -209,6 +207,8 @@ bool se_encuntra(jugador_t *jugador, char *nombre_ataque)
 	}
 	return false;
 }
+/* en la funcion juego jugar turno verifico que el juego exista ,busco los pokemones correspondientes a los nombres ingresados ,si no existen retorno el resultado de 
+la jugada,*/
 resultado_jugada_t juego_jugar_turno(juego_t *juego, jugada_t jugada_jugador1,
 				     jugada_t jugada_jugador2)
 {

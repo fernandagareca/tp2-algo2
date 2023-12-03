@@ -91,9 +91,6 @@ bool adversario_seleccionar_pokemon(adversario_t *adversario, char **nombre1,
 		lista_insertar(adversario->elegidos, poke2);
 		strcpy(adversario->usados[0].nombre_pokes, *nombre1);
 		strcpy(adversario->usados[1].nombre_pokes, *nombre2);
-		adversario->usados[0].posibilidades = 0;
-		adversario->usados[1].posibilidades = 0;
-		adversario->usados->indice = 0;
 		con_cada_ataque(poke1, cargar_vector, adversario);
 		adversario->usados->indice++;
 		con_cada_ataque(poke2, cargar_vector, adversario);
@@ -113,7 +110,6 @@ bool adversario_pokemon_seleccionado(adversario_t *adversario, char *nombre1,
 						comparador_elementos, nombre3);
 	lista_insertar(adversario->elegidos, poke);
 	strcpy(adversario->usados[2].nombre_pokes, nombre3);
-	adversario->usados[2].posibilidades = 0;
 	con_cada_ataque(poke, cargar_vector, adversario);
 
 	return true;
