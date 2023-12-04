@@ -4,23 +4,23 @@
 
 # TP2
 
-## Repositorio de (Nombre Apellido) - (Padrón) - (Mail)
+## Repositorio de Marianela fernanda Gareca Janko - 109606 - fernanda.gareca321@gmail.com
 
 - Para compilar:
 
 ```bash
-línea de compilación
+make main
 ```
 
 - Para ejecutar:
 
 ```bash
-línea de ejecución
+./main
 ```
 
 - Para ejecutar con valgrind:
 ```bash
-línea con valgrind
+make
 ```
 ---
 ##  Funcionamiento
