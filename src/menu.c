@@ -5,7 +5,6 @@ typedef struct estado_juego {
 	juego_t *juego;
 	bool ejecutando;
 	menu_t *menu;
-	bool archivo_cargado;
 } estado_juego_t;
 
 typedef struct info_comando {

@@ -6,7 +6,6 @@ typedef struct estado_juego {
 	juego_t *juego;
 	bool ejecutando;
 	menu_t *menu;
-	bool archivo_cargado;
 } estado_juego_t;
 
 typedef struct info_comando {
@@ -38,14 +37,6 @@ void explicar_juego()
 	printf(" ┃ |  _ <    | |   |  __|   | . ` |   \\ \\/ /   |  __|   | . ` |   | |   | |  | | | |  | |               ┃\n");
 	printf(" ┃ | |_) |  _| |_  | |____  | |\\  |    \\  /    | |____  | |\\  |  _| |_  | |__| | | |__| |               ┃\n");
 	printf(" ┃ |____/  |_____| |______| |_| \\_|     \\/     |______| |_| \\_| |_____| |_____/   \\____/                ┃\n");
-	printf(" ┃                                                                                                      ┃\n");
-	printf(" ┃ --------------------------- EXPLICACION  DE JUEGO------------------------------------------          ┃\n");
-	printf(" ┃                                                                                                      ┃\n");
-	printf(" ┃  El juego comienza ingresando un archivo de pokemones , consiste en que cada jugador                 ┃\n");
-	printf(" ┃  debe seleccionar 3 pokemones diferentes, los dos primeros seran tus pokemones pero el tercero sera  ┃\n");
-	printf(" ┃  el tercer pokemon del adversario, de mismo modo el tercer pokemon que elija sera tu tercer pokemon  ┃\n");
-	printf(" ┃  cada pokemon tiene 3 ataques por lo que seran 9 rondas en total y termina el juego ,gana quien      ┃\n");
-	printf(" ┃  haya acumulado mas puntos segun el ataque del pokemon que elija                                     ┃\n");
 	printf(" ┃                                                                                                      ┃\n");
 	printf(" ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
 }
@@ -219,9 +210,9 @@ RESULTADO_FUNCION seleccion_de_pokemones(void *p1, void *p2)
 	JUEGO_ESTADO estado_pokes = juego_seleccionar_pokemon(
 		estado->juego, JUGADOR1, poke1, poke2, poke3);
 	if (estado_pokes == TODO_OK) {
-		JUEGO_ESTADO estado_adversario = adversario_seleccionar_pokemon(
+		bool estado_adversario = adversario_seleccionar_pokemon(
 			info->adversario, &nombre1, &nombre2, &nombre3);
-		if (estado_adversario == TODO_OK) {
+		if (estado_adversario) {
 			adversario_pokemon_seleccionado(info->adversario, poke1,
 							poke2, poke3);
 			JUEGO_ESTADO estdo_jugador2 = juego_seleccionar_pokemon(
@@ -239,10 +230,6 @@ RESULTADO_FUNCION seleccion_de_pokemones(void *p1, void *p2)
 				return POKEMONES_CORRECTOS;
 			}
 		}
-		if (estado_adversario == POKEMON_REPETIDO)
-			return POKES_REPETIDO;
-		if (estado_adversario == POKEMON_INEXISTENTE)
-			return POKES_INEXIXTENTES;
 	}
 	if (estado_pokes == POKEMON_REPETIDO)
 		return POKES_REPETIDO;
@@ -254,7 +241,6 @@ RESULTADO_FUNCION seleccion_de_pokemones(void *p1, void *p2)
 RESULTADO_FUNCION mostrar_pokes_usuario(void *p1, void *p2)
 {
 	info_juego_t *info = p2;
-	printf("lista tam %li\n", lista_tamanio(info->pokes_jugador1));
 	if (lista_vacia(info->pokes_jugador1))
 		return ERROR_DE_SELECCION;
 	printf(" ━━━━━━━━━━━━━━ POKEMONES DEL JUGADOR ━━━━━━━━━━━━━━\n");
