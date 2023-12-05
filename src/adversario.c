@@ -47,15 +47,15 @@ adversario_t *adversario_crear(lista_t *pokemon)
 	return ad;
 }
 
-bool obtener_nombre(lista_t *lista, char **nombre, int posicion_poke)
+pokemon_t *obtener_nombre(lista_t *lista, char **nombre, int posicion_poke)
 {
 	size_t pos = (size_t)posicion_poke;
 	pokemon_t *poke1 = lista_elemento_en_posicion(lista, pos);
 	if (poke1) {
 		*nombre = (char *)pokemon_nombre(poke1);
-		return true;
+		return poke1;
 	}
-	return false;
+	return NULL;
 }
 
 void cargar_vector(const struct ataque *at, void *p2)
@@ -80,13 +80,10 @@ bool adversario_seleccionar_pokemon(adversario_t *adversario, char **nombre1,
 		numero3 = (rand() % (int)cantidad_pokes + 0);
 	}
 
-	if (obtener_nombre(adversario->pokes, nombre1, numero1) &&
-	    obtener_nombre(adversario->pokes, nombre2, numero2) &&
-	    obtener_nombre(adversario->pokes, nombre3, numero3)) {
-		pokemon_t *poke1 = lista_buscar_elemento(
-			adversario->pokes, comparador_elementos, *nombre1);
-		pokemon_t *poke2 = lista_buscar_elemento(
-			adversario->pokes, comparador_elementos, *nombre2);
+	pokemon_t *poke1 = obtener_nombre(adversario->pokes, nombre1, numero1);
+	pokemon_t *poke2 = obtener_nombre(adversario->pokes, nombre2, numero2);
+	pokemon_t *poke3 = obtener_nombre(adversario->pokes, nombre3, numero3);
+	if (poke1 && poke2 && poke3) {
 		lista_insertar(adversario->elegidos, poke1);
 		lista_insertar(adversario->elegidos, poke2);
 		strcpy(adversario->usados[0].nombre_pokes, *nombre1);
@@ -95,6 +92,7 @@ bool adversario_seleccionar_pokemon(adversario_t *adversario, char **nombre1,
 		adversario->usados->indice++;
 		con_cada_ataque(poke2, cargar_vector, adversario);
 		adversario->usados->indice++;
+		return true;
 	}
 
 	return false;

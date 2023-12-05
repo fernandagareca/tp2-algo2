@@ -135,13 +135,6 @@ JUEGO_ESTADO juego_seleccionar_pokemon(juego_t *juego, JUGADOR jugador,
 	return TODO_OK;
 }
 
-const struct ataque *jugador_ataque(informacion_pokemon_t *info,
-				    jugada_t jugada_jugador)
-{
-	pokemon_t *poke1 = pokemon_buscar(info, jugada_jugador.pokemon);
-	return pokemon_buscar_ataque(poke1, jugada_jugador.ataque);
-}
-
 RESULTADO_ATAQUE ataque_efectivo(enum TIPO tipo_ataque,
 				 enum TIPO tipo_pokemon_afectado)
 {
@@ -228,9 +221,10 @@ resultado_jugada_t juego_jugar_turno(juego_t *juego, jugada_t jugada_jugador1,
 	}
 
 	const struct ataque *ataque_jugador1 =
-		jugador_ataque(juego->info_pokes, jugada_jugador1);
+		pokemon_buscar_ataque(poke1, jugada_jugador1.ataque);
 	const struct ataque *ataque_jugador2 =
-		jugador_ataque(juego->info_pokes, jugada_jugador2);
+		pokemon_buscar_ataque(poke2, jugada_jugador2.ataque);
+
 	if (!se_encuntra(&(juego->jugador1), jugada_jugador1.ataque) ||
 	    !se_encuntra(&(juego->jugador2), jugada_jugador2.ataque)) {
 		return resultado;
