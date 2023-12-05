@@ -133,7 +133,7 @@ RESULTADO_FUNCION cargar_archivo_pokes(void *p1, void *p2)
 	if (!lista_vacia(info->lista))
 		return ARCHIVO_EXISTENTE;
 	char archivo[50];
-	printf(" ingrese un archivo de pokemones ej: correcto.txt\n");
+	printf(" ingrese un archivo de pokemones\n");
 	printf(" ▶ ");
 	leer_linea(archivo);
 
